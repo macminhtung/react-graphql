@@ -18,6 +18,12 @@ const document = gql`
   }
 `;
 
+declare module '@/react-query/types' {
+  interface QueryKey {
+    GetProfileQuery: ['GetProfileQuery'];
+  }
+}
+
 export const useGetProfileQuery = <V extends GetProfileQueryVariables, R extends GetProfileQuery>(
   variables: V,
   options?: TUseQueryOptions<R>,
@@ -26,7 +32,7 @@ export const useGetProfileQuery = <V extends GetProfileQueryVariables, R extends
   useProcessUseQueryFuncs<R>(
     useQuery(
       {
-        queryKey: ['useGetProfileQuery', variables],
+        queryKey: ['GetProfileQuery', variables],
         queryFn: () => request<R>({ document, variables }),
         ...options,
       },
