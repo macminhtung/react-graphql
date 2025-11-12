@@ -5,99 +5,127 @@ import {
   EManageTokenType,
   clearTokensAndNavigateSignInPage,
 } from '@/common/funcs';
-import type { RefreshTokenMutation, RefreshTokenMutationVariables } from '@/gql/graphql';
+import type {
+  RefreshAccessTokenMutation,
+  RefreshAccessTokenMutationVariables,
+} from '@/gql/graphql';
 
+// #====================#
+// # ==> JWT ERRORS <== #
+// #====================#
 const JWT_ERRORS = {
   EXPIRED: 'jwt expired',
-  TOKEN_INVALID: 'Token invalid',
+  INVALID_TOKEN: 'invalid token',
+  INVALID_SIGNATURE: 'invalid signature',
+  UNEXPECTED_TOKEN: 'Unexpected token',
+  ACCESS_TOKEN_INVALID: 'Access token invalid',
+  REFRESH_TOKEN_INVALID: 'Refresh token invalid',
 };
 
+// #==============================#
+// # ==> CHECK JWT IS INVALID <== #
+// #==============================#
+const isJwtInvalid = (errorMessage: string) =>
+  [
+    JWT_ERRORS.INVALID_TOKEN,
+    JWT_ERRORS.INVALID_SIGNATURE,
+    JWT_ERRORS.UNEXPECTED_TOKEN,
+    JWT_ERRORS.ACCESS_TOKEN_INVALID,
+    JWT_ERRORS.REFRESH_TOKEN_INVALID,
+  ].includes(errorMessage);
+
+// #===============================#
+// # ==> PROCESS REQUEST ERROR <== #
+// #===============================#
+const processRequestError = (error: ClientError) => {
+  const errorMessage = error.response.errors?.[0]?.message || '';
+
+  // CASE: JWT INVALID ==> SIGNOUT
+  if (isJwtInvalid(errorMessage))
+    showToastError(error, {
+      duration: 1500,
+      onAutoClose: () => clearTokensAndNavigateSignInPage(),
+    });
+
+  // CASE: SHOW MESSAGE ERROR
+  showToastError(error);
+};
+
+// #================================#
+// # ==> REFRESH TOKEN DOCUMENT <== #
+// #================================#
 const refreshTokenDocument = gql`
-  mutation RefreshToken($payload: RefreshTokenDto!) {
-    refreshToken(payload: $payload) {
+  mutation RefreshAccessToken($payload: RefreshAccessTokenDto!) {
+    refreshAccessToken(payload: $payload) {
       accessToken
     }
   }
 `;
 
-const client = new GraphQLClient(`${import.meta.env.VITE_APP_API}/graphql`, {
-  credentials: 'include',
-  mode: 'cors',
-});
+// #===============================#
+// # ==> CREATE GRAPHQL CLIENT <== #
+// #===============================#
+const createClient = (token?: string) =>
+  new GraphQLClient(`${import.meta.env.VITE_APP_API}/graphql`, {
+    credentials: 'include',
+    mode: 'cors',
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
 
-export const request = <R, V extends Variables = Variables>(options: RequestOptions<V, R>) => {
+// #==============================#
+// # ==> REFRESH ACCESS TOKEN <== #
+// #==============================#
+let refreshPromise: Promise<string> | null = null;
+
+const refreshAccessToken = (accessToken: string): Promise<string> => {
+  if (!refreshPromise) {
+    const client = createClient();
+    refreshPromise = client
+      .request<RefreshAccessTokenMutation, RefreshAccessTokenMutationVariables>({
+        document: refreshTokenDocument,
+        variables: { payload: { accessToken } },
+      })
+      .then(({ refreshAccessToken }) => {
+        const newToken = refreshAccessToken.accessToken;
+        manageAccessToken({ type: EManageTokenType.SET, accessToken: newToken });
+        refreshPromise = null;
+        return newToken;
+      })
+      .catch((err) => {
+        refreshPromise = null;
+        return Promise.reject(err);
+      });
+  }
+  return refreshPromise;
+};
+
+// #=========================#
+// # ==> GRAPHQL REQUEST <== #
+// #=========================#
+export const request = <R, V extends Variables = Variables>(
+  options: RequestOptions<V, R>
+): Promise<R> => {
   const accessToken = manageAccessToken({ type: EManageTokenType.GET });
-  return (
-    client
-      .request({
-        ...options,
-        requestHeaders: { authorization: accessToken ? `Bearer ${accessToken}` : '' },
-      })
-      // Handle error
-      .catch((error: ClientError) => {
-        // Identify the error message
-        const errorMessage = error.response.errors?.[0]?.message || '';
+  const client = createClient(accessToken);
 
-        // CASE: JWT Expired ==> Refresh accessToken ==> Recall API
-        if (errorMessage === JWT_ERRORS.EXPIRED) {
-          return (
-            client
-              .request<RefreshTokenMutation, RefreshTokenMutationVariables>({
-                document: refreshTokenDocument,
-                variables: { payload: { accessToken } },
-              })
-              // CASE: Update new accessToken & accessToken
-              .then(({ refreshToken: { accessToken: newAccessToken } }) => {
-                // Set new tokens
-                manageAccessToken({ type: EManageTokenType.SET, accessToken: newAccessToken });
+  return client.request<R, V>(options).catch((error: ClientError) => {
+    const errorMessage = error.response.errors?.[0]?.message || '';
 
-                // Recall the API with new accessToken
-                return (
-                  client
-                    .request({
-                      ...options,
-                      requestHeaders: { authorization: `Bearer ${newAccessToken}` },
-                    })
-                    // CASE: Invalid refresh token ==> Show toast error
-                    .catch((reCallError) => {
-                      // Identify the re-error message
-                      const reErrorMessage = reCallError.response.errors?.[0]?.message || '';
+    // CASE: TOKEN EXPIRED
+    if (errorMessage === JWT_ERRORS.EXPIRED) {
+      return refreshAccessToken(accessToken) // ==> REFRESH ACCESS TOKEN
+        .then((newAccessToken) => {
+          const newClient = createClient(newAccessToken); // ==> RECALL REQUEST
+          return newClient.request<R, V>(options);
+        })
+        .catch((refreshError) => {
+          processRequestError(refreshError); // ==> PROCESS REQUEST ERROR
+          return Promise.reject(refreshError);
+        });
+    }
 
-                      // CASE: JWT invalid
-                      if (reErrorMessage.includes(JWT_ERRORS.TOKEN_INVALID))
-                        throw showToastError(error, {
-                          duration: 1500,
-                          onAutoClose: () => clearTokensAndNavigateSignInPage(),
-                        });
-
-                      // Show toast error
-                      showToastError(reCallError);
-                      throw null;
-                    })
-                );
-              })
-
-              // CASE: Refresh token error
-              .catch((refreshError) => {
-                showToastError(refreshError, {
-                  duration: 1500,
-                  onAutoClose: () => clearTokensAndNavigateSignInPage(),
-                });
-                throw null;
-              })
-          );
-        }
-
-        // CASE: JWT invalid
-        else if (errorMessage.includes(JWT_ERRORS.TOKEN_INVALID))
-          throw showToastError(error, {
-            duration: 1500,
-            onAutoClose: () => clearTokensAndNavigateSignInPage(),
-          });
-
-        // Show toast error
-        showToastError(error);
-        throw null;
-      })
-  );
+    // CASE: PROCESS REQUEST ERROR
+    processRequestError(error);
+    return Promise.reject(error);
+  });
 };

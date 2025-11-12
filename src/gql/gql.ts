@@ -21,7 +21,7 @@ type Documents = {
     "\n  mutation SignOut {\n    signOut\n  }\n": typeof types.SignOutDocument,
     "\n  mutation SignUp($payload: SignUpDto!) {\n    signUp(payload: $payload) {\n      id\n    }\n  }\n": typeof types.SignUpDocument,
     "\n  mutation UpdateProfile($payload: UpdateProfileDto!) {\n    updateProfile(payload: $payload) {\n      id\n      email\n      avatar\n      firstName\n      lastName\n    }\n  }\n": typeof types.UpdateProfileDocument,
-    "\n  mutation RefreshToken($payload: RefreshTokenDto!) {\n    refreshToken(payload: $payload) {\n      accessToken\n    }\n  }\n": typeof types.RefreshTokenDocument,
+    "\n  mutation RefreshAccessToken($payload: RefreshAccessTokenDto!) {\n    refreshAccessToken(payload: $payload) {\n      accessToken\n    }\n  }\n": typeof types.RefreshAccessTokenDocument,
 };
 const documents: Documents = {
     "\n  mutation GeneratePreSignedUrl($payload: GeneratePreSignedUrlDto!) {\n    generatePreSignedUrl(payload: $payload)\n  }\n": types.GeneratePreSignedUrlDocument,
@@ -30,7 +30,7 @@ const documents: Documents = {
     "\n  mutation SignOut {\n    signOut\n  }\n": types.SignOutDocument,
     "\n  mutation SignUp($payload: SignUpDto!) {\n    signUp(payload: $payload) {\n      id\n    }\n  }\n": types.SignUpDocument,
     "\n  mutation UpdateProfile($payload: UpdateProfileDto!) {\n    updateProfile(payload: $payload) {\n      id\n      email\n      avatar\n      firstName\n      lastName\n    }\n  }\n": types.UpdateProfileDocument,
-    "\n  mutation RefreshToken($payload: RefreshTokenDto!) {\n    refreshToken(payload: $payload) {\n      accessToken\n    }\n  }\n": types.RefreshTokenDocument,
+    "\n  mutation RefreshAccessToken($payload: RefreshAccessTokenDto!) {\n    refreshAccessToken(payload: $payload) {\n      accessToken\n    }\n  }\n": types.RefreshAccessTokenDocument,
 };
 
 /**
@@ -60,7 +60,7 @@ export function graphql(source: "\n  mutation UpdateProfile($payload: UpdateProf
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation RefreshToken($payload: RefreshTokenDto!) {\n    refreshToken(payload: $payload) {\n      accessToken\n    }\n  }\n"): typeof import('./graphql').RefreshTokenDocument;
+export function graphql(source: "\n  mutation RefreshAccessToken($payload: RefreshAccessTokenDto!) {\n    refreshAccessToken(payload: $payload) {\n      accessToken\n    }\n  }\n"): typeof import('./graphql').RefreshAccessTokenDocument;
 
 
 export function graphql(source: string) {

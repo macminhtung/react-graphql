@@ -55,7 +55,7 @@ type Mutation {
   createProduct(payload: CreateProductDto!): ProductEntity!
   deleteProduct(id: String!): String!
   generatePreSignedUrl(payload: GeneratePreSignedUrlDto!): String!
-  refreshToken(payload: RefreshTokenDto!): SignInResponseDto!
+  refreshAccessToken(payload: RefreshAccessTokenDto!): SignInResponseDto!
   signIn(payload: SignInDto!): SignInResponseDto!
   signOut: Float!
   signUp(payload: SignUpDto!): UserEntity!
@@ -71,7 +71,7 @@ type PaginatedProductsResponseDto {
 
 type ProductEntity {
   createdAt: DateTime!
-  deletedAt: DateTime!
+  deletedAt: DateTime
   description: String!
   id: String!
   image: String!
@@ -86,14 +86,14 @@ type Query {
   getUser(id: String!): UserEntity!
 }
 
-input RefreshTokenDto {
+input RefreshAccessTokenDto {
   accessToken: String!
 }
 
 type RoleEntity {
   createdAt: DateTime!
-  deletedAt: DateTime!
-  description: String!
+  deletedAt: DateTime
+  description: String
   id: Float!
   name: String!
   updatedAt: DateTime!
@@ -136,7 +136,7 @@ input UpdateUserDto {
 type UserEntity {
   avatar: String!
   createdAt: DateTime!
-  deletedAt: DateTime!
+  deletedAt: DateTime
   email: String!
   firstName: String!
   id: String!

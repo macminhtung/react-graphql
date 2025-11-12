@@ -65,7 +65,7 @@ export type Mutation = {
   createProduct: ProductEntity;
   deleteProduct: Scalars['String']['output'];
   generatePreSignedUrl: Scalars['String']['output'];
-  refreshToken: SignInResponseDto;
+  refreshAccessToken: SignInResponseDto;
   signIn: SignInResponseDto;
   signOut: Scalars['Float']['output'];
   signUp: UserEntity;
@@ -91,8 +91,8 @@ export type MutationGeneratePreSignedUrlArgs = {
 };
 
 
-export type MutationRefreshTokenArgs = {
-  payload: RefreshTokenDto;
+export type MutationRefreshAccessTokenArgs = {
+  payload: RefreshAccessTokenDto;
 };
 
 
@@ -133,7 +133,7 @@ export type PaginatedProductsResponseDto = {
 
 export type ProductEntity = {
   createdAt: Scalars['DateTime']['output'];
-  deletedAt: Scalars['DateTime']['output'];
+  deletedAt?: Maybe<Scalars['DateTime']['output']>;
   description: Scalars['String']['output'];
   id: Scalars['String']['output'];
   image: Scalars['String']['output'];
@@ -163,14 +163,14 @@ export type QueryGetUserArgs = {
   id: Scalars['String']['input'];
 };
 
-export type RefreshTokenDto = {
+export type RefreshAccessTokenDto = {
   accessToken: Scalars['String']['input'];
 };
 
 export type RoleEntity = {
   createdAt: Scalars['DateTime']['output'];
-  deletedAt: Scalars['DateTime']['output'];
-  description: Scalars['String']['output'];
+  deletedAt?: Maybe<Scalars['DateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Float']['output'];
   name: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
@@ -213,7 +213,7 @@ export type UpdateUserDto = {
 export type UserEntity = {
   avatar: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
-  deletedAt: Scalars['DateTime']['output'];
+  deletedAt?: Maybe<Scalars['DateTime']['output']>;
   email: Scalars['String']['output'];
   firstName: Scalars['String']['output'];
   id: Scalars['String']['output'];
@@ -262,12 +262,12 @@ export type UpdateProfileMutationVariables = Exact<{
 
 export type UpdateProfileMutation = { updateProfile: { id: string, email: string, avatar: string, firstName: string, lastName: string } };
 
-export type RefreshTokenMutationVariables = Exact<{
-  payload: RefreshTokenDto;
+export type RefreshAccessTokenMutationVariables = Exact<{
+  payload: RefreshAccessTokenDto;
 }>;
 
 
-export type RefreshTokenMutation = { refreshToken: { accessToken: string } };
+export type RefreshAccessTokenMutation = { refreshAccessToken: { accessToken: string } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -335,10 +335,10 @@ export const UpdateProfileDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateProfileMutation, UpdateProfileMutationVariables>;
-export const RefreshTokenDocument = new TypedDocumentString(`
-    mutation RefreshToken($payload: RefreshTokenDto!) {
-  refreshToken(payload: $payload) {
+export const RefreshAccessTokenDocument = new TypedDocumentString(`
+    mutation RefreshAccessToken($payload: RefreshAccessTokenDto!) {
+  refreshAccessToken(payload: $payload) {
     accessToken
   }
 }
-    `) as unknown as TypedDocumentString<RefreshTokenMutation, RefreshTokenMutationVariables>;
+    `) as unknown as TypedDocumentString<RefreshAccessTokenMutation, RefreshAccessTokenMutationVariables>;
