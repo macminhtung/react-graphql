@@ -7,7 +7,7 @@ export const useProcessUseQueryFuncs = <R>(
   result: UseQueryResult<NoInfer<R>, ClientError>,
   options?: Pick<TUseQueryOptions<R>, 'enabled' | 'onLoading' | 'onSuccess' | 'onError'>
 ) => {
-  const { onSuccess, onError, onLoading, enabled } = options || {};
+  const { onSuccess, onError, onLoading, enabled = true } = options || {};
 
   useEffect(() => {
     if (enabled) {

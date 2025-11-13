@@ -14,7 +14,9 @@ const DashboardPage = lazy(() => import('@/pages/Dashboard'));
 const ComponentsPage = lazy(() => import('@/pages/Components'));
 const ProfilePage = lazy(() => import('@/pages/Profile'));
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false, refetchOnMount: false } },
+});
 
 const AppRoutes = () => {
   return (
