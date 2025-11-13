@@ -33,7 +33,7 @@ export const useGetProfileQuery = <V extends GetProfileQueryVariables, R extends
     useQuery(
       {
         queryKey: ['GetProfileQuery', variables],
-        queryFn: () => request<R>({ document, variables }),
+        queryFn: ({ signal }) => request<R>({ document, variables: { signal, ...variables } }),
         ...options,
       },
       queryClient
